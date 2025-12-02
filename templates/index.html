@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVD Risk Assessment | Premium AI Health</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="background-glow"></div>
+    
+    <main class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fa-solid fa-heart-pulse"></i>
+                <span>CardioAI</span>
+            </div>
+            <h1>Cardiovascular Disease Risk Assessment</h1>
+            <p>Advanced AI-powered analysis using 18 key health indicators.</p>
+        </header>
+
+        <form id="predictionForm" class="glass-panel">
+            <div class="form-grid">
+                <!-- Personal Details -->
+                <div class="form-section">
+                    <h3><i class="fa-regular fa-id-card"></i> Personal Details</h3>
+                    
+                    <div class="input-group">
+                        <label for="Age">Age (Years)</label>
+                        <input type="number" id="Age" name="Age" min="18" max="100" required placeholder="e.g. 45">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="Sex">Sex</label>
+                        <select id="Sex" name="Sex" required>
+                            <option value="" disabled selected>Select...</option>
+                            <option value="0">Female</option>
+                            <option value="1">Male</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="Height">Height (cm)</label>
+                        <input type="number" id="Height" name="Height" min="100" max="250" required placeholder="e.g. 175">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="Weight">Weight (kg)</label>
+                        <input type="number" id="Weight" name="Weight" min="30" max="200" required placeholder="e.g. 70">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="BMI">BMI (Auto-calculated)</label>
+                        <input type="number" id="BMI" name="BMI" readonly placeholder="---">
+                    </div>
+                </div>
+
+                <!-- Health History -->
+                <div class="form-section">
+                    <h3><i class="fa-solid fa-notes-medical"></i> Medical History</h3>
+
+                    <div class="input-group">
+                        <label for="General_Health">General Health</label>
+                        <select id="General_Health" name="General_Health" required>
+                            <option value="Excellent">Excellent</option>
+                            <option value="Very_Good">Very Good</option>
+                            <option value="Good">Good</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Poor">Poor</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="Checkup">Last Checkup</label>
+                        <select id="Checkup" name="Checkup" required>
+                            <option value="Within 1 year">Within 1 year</option>
+                            <option value="1-2 years">1-2 years</option>
+                            <option value="2-5 years">2-5 years</option>
+                            <option value="5+ years">5+ years</option>
+                            <option value="Never">Never</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="Diabetes">Diabetes</label>
+                        <select id="Diabetes" name="Diabetes" required>
+                            <option value="No">No</option>
+                            <option value="Borderline">Borderline</option>
+                            <option value="During Pregnancy">During Pregnancy</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="Skin_Cancer" name="Skin_Cancer">
+                            <span class="checkmark"></span>
+                            History of Skin Cancer
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="Other_Cancer" name="Other_Cancer">
+                            <span class="checkmark"></span>
+                            History of Other Cancer
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="Depression" name="Depression">
+                            <span class="checkmark"></span>
+                            History of Depression
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="Arthritis" name="Arthritis">
+                            <span class="checkmark"></span>
+                            History of Arthritis
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Lifestyle -->
+                <div class="form-section full-width">
+                    <h3><i class="fa-solid fa-person-running"></i> Lifestyle</h3>
+                    
+                    <div class="lifestyle-grid">
+                        <div class="input-group">
+                            <label for="Exercise">Exercise (Any physical activity?)</label>
+                            <select id="Exercise" name="Exercise" required>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="Smoking">Smoking History</label>
+                            <select id="Smoking" name="Smoking" required>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="Alcohol">Alcohol (Days/Month)</label>
+                            <input type="number" id="Alcohol" name="Alcohol" min="0" max="30" value="0">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="Fruit">Fruit Consumption (Servings/Month)</label>
+                            <input type="number" id="Fruit" name="Fruit" min="0" max="100" value="0">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="Green_Vegetables">Green Veggies (Servings/Month)</label>
+                            <input type="number" id="Green_Vegetables" name="Green_Vegetables" min="0" max="100" value="0">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="Fried_Potato">Fried Potato (Servings/Month)</label>
+                            <input type="number" id="Fried_Potato" name="Fried_Potato" min="0" max="100" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <span>Analyze Risk</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+
+        <div id="resultModal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <span class="close-modal">&times;</span>
+                <div class="result-header">
+                    <div id="riskIcon" class="risk-icon"></div>
+                    <h2 id="riskLevel">High Risk</h2>
+                </div>
+                <div class="result-body">
+                    <p>Based on the analysis of your health indicators, your estimated probability of cardiovascular disease is:</p>
+                    <div class="probability-meter">
+                        <div id="probFill" class="prob-fill"></div>
+                        <span id="probValue">85%</span>
+                    </div>
+                    <p class="disclaimer">This AI assessment is for informational purposes only and does not constitute a medical diagnosis. Please consult a healthcare professional.</p>
+                </div>
+                <button class="btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
