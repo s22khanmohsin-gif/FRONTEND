@@ -12,7 +12,7 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 # ----------------------------
 
 # On Render, model will be stored on Render Disk:
-MODEL_PATH = "/var/data/model.pkl"
+MODEL_PATH = "/var/data/model_compressed.pkl"
 
 if os.path.exists(MODEL_PATH):
     try:
