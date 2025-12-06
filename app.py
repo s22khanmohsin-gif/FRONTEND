@@ -1,7 +1,6 @@
 import os
 import joblib
 import numpy as np
-import pandas as pd
 from flask import Flask, request, jsonify, render_template
 
 # Correct template + static mapping for Render
