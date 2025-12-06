@@ -1,5 +1,8 @@
 flask
 pandas
 numpy
-scikit-learn
 joblib
+scikit-learn
+xgboost
+gunicorn
+

@@ -12,7 +12,10 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 # ----------------------------
 
 # On Render, model will be stored on Render Disk:
-MODEL_PATH = "/var/data/model_compressed.pkl"
+MODEL_PATH = "/var/data/model_pruned_float16.pkl"
+
+# Try Render Disk path first, then local path
+local_model_path = "model_pruned_float16.pkl"
 
 if os.path.exists(MODEL_PATH):
     try:
@@ -21,8 +24,15 @@ if os.path.exists(MODEL_PATH):
     except Exception as e:
         print(f"Error loading model: {e}")
         model = None
+elif os.path.exists(local_model_path):
+    try:
+        model = joblib.load(local_model_path)
+        print(f"Model loaded successfully from {local_model_path}")
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        model = None
 else:
-    print("Model file not found on Render Disk.")
+    print("Model file not found.")
     model = None
 
 # ---------------------------------------

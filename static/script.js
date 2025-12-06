@@ -95,12 +95,12 @@ document.addEventListener('DOMContentLoaded', () => {
             riskLevel.textContent = 'High Risk';
             riskLevel.className = 'risk-high';
             riskIcon.innerHTML = '<i class="fa-solid fa-heart-crack risk-high"></i>';
-            probFill.style.background = 'linear-gradient(90deg, #f87171, #ef4444)';
+            probFill.style.background = 'linear-gradient(90deg, #F87171, #EF4444)'; // Red 400 -> 500
         } else {
             riskLevel.textContent = 'Low Risk';
             riskLevel.className = 'risk-low';
             riskIcon.innerHTML = '<i class="fa-solid fa-heart-circle-check risk-low"></i>';
-            probFill.style.background = 'linear-gradient(90deg, #34d399, #10b981)';
+            probFill.style.background = 'linear-gradient(90deg, #34D399, #10B981)'; // Emerald 400 -> 500
         }
 
         probFill.style.width = percentage;
