@@ -1,2 +1,10 @@
-Meta-MLP_Base-GB-AdaB-XGB-RF_reduced.pkl
-model_compressed.pkl
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
