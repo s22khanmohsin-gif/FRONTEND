@@ -1,0 +1,7 @@
+# Package versions for model re-serialization
+# Install these EXACT versions before running fix_model.py
+
+numpy==1.23.5
+joblib==1.2.0
+scikit-learn==1.6.1
+xgboost==1.7.5
