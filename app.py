@@ -20,8 +20,8 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 # ----------------------------
 # MODEL LOADING
 # ----------------------------
-# New 18-feature Stacking Ensemble Model
-MODEL_PATH = "Meta-MLP_Base-GB-AdaB-XGB-RF_full.pkl"
+# 18-feature Model
+MODEL_PATH = "model_fixed.pkl"
 
 model = None
 
@@ -38,93 +38,54 @@ except Exception as e:
     logger.error(traceback.format_exc())
 
 # ---------------------------------------
-# Feature Configuration (18 Features)
+# Feature Configuration (9 Features)
 # ---------------------------------------
 # EXACT ORDER from model.feature_names_in_
 MODEL_FEATURES = [
-    'General_Health', 'Checkup', 'Exercise', 'Skin_Cancer', 'Other_Cancer', 
-    'Depression', 'Diabetes', 'Arthritis', 'Sex', 'Age', 'Height', 'Weight', 
-    'BMI', 'Smoking', 'Alcohol', 'Fruit', 'Green_Vegetables', 'Fried_Potato'
+    'Weight', 'Height', 'Green_Vegetables', 'General_Health',
+    'Fruit', 'Fried_Potato', 'BMI', 'Age', 'Alcohol'
 ]
+
+SCALERS = {
+    'Weight': {'min': 30, 'max': 150},
+    'Height': {'min': 120, 'max': 220},
+    'BMI': {'min': 15, 'max': 50},
+    'Age': {'min': 18, 'max': 80},
+    'Fruit': {'min': 0, 'max': 30},
+    'Green_Vegetables': {'min': 0, 'max': 30},
+    'Fried_Potato': {'min': 0, 'max': 30},
+    'Alcohol': {'min': 0, 'max': 30},
+    'General_Health': {
+        'Poor': 0.0, 'Fair': 0.25, 'Good': 0.5, 'Very_Good': 0.75, 'Excellent': 1.0
+    }
+}
 
 def process_input_value(value, feature_name):
     """
-    Converts input to the format expected by the model.
-    CRITICAL: Validated that model expects RAW values, not normalized.
+    Normalizes input values based on the scalers configuration.
+    Features are scaled to 0-1 range.
     """
+    if feature_name in SCALERS:
+        config = SCALERS[feature_name]
+
+        # Numeric Range Scaling
+        if isinstance(config, dict) and 'min' in config:
+            try:
+                val = float(value)
+                # Clip to min/max before scaling? Or just raw scaling?
+                # The previous code did: (val - min) / (max - min)
+                norm_val = (val - config['min']) / (config['max'] - config['min'])
+                return max(0.0, min(1.0, norm_val)) # Build-in clip to 0-1
+            except:
+                return 0.0
+
+        # Categorical Mapping
+        elif isinstance(config, dict):
+            return config.get(str(value), 0.0)
+
     try:
-        if value is None or value == "":
-            return 0.0
-
-        # Numeric fields - Keep RAW
-        # FIX: Model has bias against 0 values for Alcohol/Fried_Potato ("Clean Living Penalty")
-        # Set minimum of 1 to avoid this quirk
-        if feature_name in ['Age', 'Height', 'Weight', 'BMI', 'Fruit', 'Green_Vegetables']:
-            return float(value)
-        if feature_name == 'Alcohol':
-            val = float(value)
-            return max(val, 1.0)  # Minimum 1 to avoid bias
-        if feature_name == 'Fried_Potato':
-            val = float(value)
-            return max(val, 1.0)  # Minimum 1 to avoid bias
-            
-        # Categorical Mappings
-        # Based on typical dataset encodings
-        if feature_name == 'General_Health':
-            # Map string to numeric if needed, or pass 1.0/0.0
-            mapping = {
-                'Poor': 0.0, 
-                'Fair': 0.25, 
-                'Good': 0.5, 
-                'Very_Good': 0.75, 
-                'Excellent': 1.0,
-                # Fallback for numeric str
-                '0': 0.0, '1': 1.0
-            }
-            return mapping.get(str(value), float(value) if str(value).replace('.','',1).isdigit() else 0.0)
-            
-        # Binary Fields (Yes/No -> 1/0)
-        # Checkup, Exercise, Skin_Cancer, Other_Cancer, Depression, Diabetes, Arthritis, Sex, Smoking
-        mapping = {
-            'Yes': 1.0, 'No': 0.0,
-            'Male': 1.0, 'Female': 0.0,
-            '1': 1.0, '0': 0.0
-        }
-        
-        # Helper for Checkup (Within last year = 1, else 0?)
-        # Dataset usually: 1=Within past year, 2=Within past 2 years...
-        # For simplicity/safety with current binary test success:
-        if feature_name == 'Checkup':
-             # If value is 'Within past year' or '1', return 1
-             # Also handle 'Within 1 year' from HTML
-             val_str = str(value).lower()
-             if val_str in ['within past year', 'within 1 year', '1', 'yes']:
-                 return 1.0
-             return 0.0
-
-        # Diabetes: Yes/No/Borderline/During Pregnancy
-        # Model likely trained on 0/1 or 0/1/2. 
-        # Assuming 0=No, 1=Yes/Borderline/Pregnancy for safety, or just Yes=1.
-        # Let's map Yes=1, others=0 for now to match "Healthy" expectation, 
-        # but ideally Borderline should be > 0. 
-        # However, for the specific issue of "Healthy" person getting high risk, 
-        # "No" should definitely be 0.
-        if feature_name == 'Diabetes':
-            val_str = str(value).lower()
-            if val_str in ['yes', '1']:
-                return 1.0
-            # Treat Borderline/Pregnancy as 0 or maybe 1? 
-            # If we want to be strict, maybe they are risk factors.
-            # But for now ensure 'No' is 0.
-            return 0.0
-
-        if str(value) in mapping:
-            return mapping[str(value)]
-            
         return float(value)
-
-    except Exception as e:
-        logger.warning(f"Conversion failed for {feature_name} val='{value}': {e}")
+    except:
         return 0.0
 
 @app.route("/")
@@ -152,15 +113,8 @@ def predict():
         
         for feature in MODEL_FEATURES:
             raw_val = data.get(feature)
-            # Default to 0/No if missing
-            if raw_val is None:
-                # Set intelligent defaults for required fields?
-                # For now 0 is safe "No/None"
-                raw_val = 0
-            
             processed_val = process_input_value(raw_val, feature)
             input_vector.append(processed_val)
-            # logger.debug(f"{feature}: {raw_val} -> {processed_val}")
 
         logger.info(f"Input Vector: {input_vector}")
 
