@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Your Health Report | HeartCare</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Main Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* Recommendation-specific styles */
+    .recommendation-page {
+      padding: 2rem 0;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+    }
+
+    .report-grid {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 980px) {
+      .report-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        order: -1;
+      }
+    }
+
+    /* Risk Level Selector */
+    .risk-selector {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2rem;
+    }
+
+    .risk-selector h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-main);
+    }
+
+    .risk-pills {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .risk-pill {
+      padding: 1rem;
+      border-radius: var(--radius-lg);
+      color: white;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .risk-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .risk-pill.active {
+      border-color: var(--text-main);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+
+    .risk-pill.vlow {
+      background: linear-gradient(135deg, #10B981, #059669);
+    }
+
+    .risk-pill.low {
+      background: linear-gradient(135deg, #34D399, #10B981);
+    }
+
+    .risk-pill.mod {
+      background: linear-gradient(135deg, #FBBF24, #F59E0B);
+    }
+
+    .risk-pill.high {
+      background: linear-gradient(135deg, #FB923C, #F97316);
+    }
+
+    .risk-pill.vh {
+      background: linear-gradient(135deg, #EF4444, #DC2626);
+    }
+
+    .risk-pill small {
+      display: block;
+      font-size: 0.75rem;
+      opacity: 0.9;
+      margin-top: 0.25rem;
+    }
+
+    /* Main Report Card */
+    .report-card {
+      background: white;
+      padding: 2.5rem;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      border-left: 6px solid var(--primary-color);
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    .report-card.highlight {
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1), var(--shadow-lg);
+    }
+
+    .report-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .report-subtitle {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .recommendations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .recommendation-card {
+      background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .recommendation-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .recommendation-card h4 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .recommendation-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .recommendation-card li {
+      padding: 0.5rem 0;
+      color: var(--text-main);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .recommendation-card li::before {
+      content: "✓";
+      color: var(--primary-color);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* Sidebar */
+    .sidebar .card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 1.5rem;
+    }
+
+    .sidebar h3 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-main);
+    }
+
+    /* Severity Meter */
+    .meter-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 0;
+    }
+
+    .meter {
+      width: 160px;
+      height: 160px;
+      position: relative;
+    }
+
+    .meter svg {
+      transform: rotate(-90deg);
+    }
+
+    .meter .center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .meter .percent {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary-color);
+    }
+
+    .meter .label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Chart */
+    .chart-container {
+      height: 240px;
+      margin-top: 1rem;
+    }
+
+    /* Doctor Cards */
+    .doctor-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .doctor-card {
+      padding: 1.25rem;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .doctor-card:hover {
+      transform: translateX(4px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .doctor-name {
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    .doctor-info {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .doctor-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .btn-small {
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg-body);
+    }
+
+    .btn-primary-small {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary-small:hover {
+      background: var(--primary-hover);
+    }
+
+    /* Map */
+    #map {
+      height: 280px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    /* Action Buttons */
+    .action-section {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      margin-top: 2rem;
+    }
+
+    .action-section h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text-main);
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .action-btn {
+      padding: 0.875rem 1.75rem;
+      border-radius: 100px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .action-btn-primary {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+    }
+
+    .action-btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .action-btn-secondary {
+      background: white;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .action-btn-secondary:hover {
+      background: var(--bg-body);
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Background Effect -->
+  <div class="background-glow"></div>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand">
+        <span class="heart-icon">❤️</span>
+        <span class="brand-name">HeartCare</span>
+      </div>
+      <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/#about">About</a>
+        <a href="/#contact">Contact</a>
+        <a href="/calculate" class="btn-start">Start Assessment</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container recommendation-page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Your Personalized Health Report</h1>
+      <p>Comprehensive cardiovascular risk assessment with tailored recommendations</p>
+    </div>
+
+    <!-- Risk Level Selector -->
+    <div class="risk-selector">
+      <h3>Select Risk Level to View Details</h3>
+      <p class="small" style="margin-bottom: 1rem;">Click on a risk level below or the system will auto-select based on
+        your assessment</p>
+      <div class="risk-pills">
+        <div class="risk-pill vlow" onclick="show(1)">
+          Very Low<br><small>0–20%</small>
+        </div>
+        <div class="risk-pill low" onclick="show(2)">
+          Low<br><small>21–40%</small>
+        </div>
+        <div class="risk-pill mod" onclick="show(3)">
+          Moderate<br><small>41–60%</small>
+        </div>
+        <div class="risk-pill high" onclick="show(4)">
+          High<br><small>61–80%</small>
+        </div>
+        <div class="risk-pill vh" onclick="show(5)">
+          Very High<br><small>81–100%</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="report-grid">
+      <!-- Left Column: Report Details -->
+      <div class="main-content">
+        <div id="detailsArea"></div>
+
+        <!-- Action Buttons -->
+        <div class="action-section">
+          <h3><i class="fa-solid fa-download"></i> Export & Download</h3>
+          <div class="action-buttons">
+            <button class="action-btn action-btn-primary" onclick="downloadDietPDF()">
+              <i class="fa-solid fa-file-pdf"></i> Download Diet Plan (PDF)
+            </button>
+            <button class="action-btn action-btn-secondary" onclick="downloadDietCSV()">
+              <i class="fa-solid fa-file-csv"></i> Download Diet Plan (CSV)
+            </button>
+            <button class="action-btn action-btn-primary" onclick="generatePDF()">
+              <i class="fa-solid fa-file-medical"></i> Download Full Report (PDF)
+            </button>
+            <button class="action-btn action-btn-secondary" onclick="printFriendly()">
+              <i class="fa-solid fa-print"></i> Print Report
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Sidebar -->
+      <div class="sidebar">
+        <!-- Severity Meter -->
+        <div class="card">
+          <h3><i class="fa-solid fa-gauge-high"></i> Risk Severity</h3>
+          <div class="meter-container">
+            <div class="meter">
+              <svg width="160" height="160" viewBox="0 0 100 100">
+                <defs>
+                  <linearGradient id="meterGradient" x1="0" x2="1">
+                    <stop offset="0%" stop-color="#10B981" />
+                    <stop offset="50%" stop-color="#FBBF24" />
+                    <stop offset="100%" stop-color="#EF4444" />
+                  </linearGradient>
+                </defs>
+                <circle cx="50" cy="50" r="40" stroke="#E5E7EB" stroke-width="12" fill="none"></circle>
+                <circle id="meterArc" cx="50" cy="50" r="40" stroke="url(#meterGradient)" stroke-width="12"
+                  stroke-linecap="round" fill="none" stroke-dasharray="0 251.2"></circle>
+              </svg>
+              <div class="center">
+                <div class="percent" id="meterPercent">0%</div>
+                <div class="label" id="meterLabel">Risk Level</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Factors Chart -->
+        <div class="card">
+          <h3><i class="fa-solid fa-chart-column"></i> Risk Factor Analysis</h3>
+          <div class="chart-container">
+            <canvas id="factorChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Nearby Doctors -->
+        <div class="card">
+          <h3><i class="fa-solid fa-user-doctor"></i> Nearby Cardiologists</h3>
+          <p class="small" style="margin-bottom: 1rem;">Recommended specialists in Nanded, Maharashtra</p>
+          <div id="map"></div>
+          <div class="doctor-list" id="doctorList"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-about">
+        <h3>HeartCare</h3>
+        <p>HeartCare is a heart disease risk prediction platform created to promote early detection, awareness, and
+          prevention of cardiovascular diseases.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <a href="/">Home</a>
+        <a href="/#about">About</a>
+        <a href="/#contact">Contact</a>
+        <a href="/calculate">Start Calculation</a>
+      </div>
+      <div class="footer-contact">
+        <h4>Contact Info</h4>
+        <p><strong>Email:</strong> support@heartcare.com</p>
+        <p><strong>Phone:</strong> +91 9876543210</p>
+        <p><strong>Location:</strong> Nanded, Maharashtra, India</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 HeartCare | AI Heart Disease Risk Prediction System | All Rights Reserved</p>
+    </div>
+  </footer>
+
+  <script>
+    /* Sample data — Cardiologists in Nanded, MH */
+    const doctors = [
+      { name: "Dr. Shrikant Bhoskar", address: "Sunrise Global Hospital, Nanded", phone: "+91 70454 45363", email: "shrikant@example.com", lat: 19.1683962, lon: 77.3063096 },
+      { name: "Dr. Sunil Kamble", address: "Rhythm Heart Care Clinic, Nanded", phone: "+91 92267 30273", email: "sunil@example.com", lat: 19.1574799, lon: 77.3081876 },
+      { name: "Dattakrupa Heart Care", address: "Doctor Lane, Khadakpura, Nanded", phone: "+91 93071 27289", email: "dattakrupa@example.com", lat: 19.159009, lon: 77.307444 }
+    ];
+
+    const NANDED_LAT = 19.1601;
+    const NANDED_LON = 77.3040;
+
+    /* Recommendation templates */
+    const PLANS = {
+      1: {
+        title: "✅ Very Low Risk (0–20%)",
+        desc: "Excellent health status! Continue your healthy lifestyle with routine checkups once per year.",
+        factors: [2, 2, 1, 2, 2],
+        diet: ["Daily fruits & vegetables", "Whole grains", "Limit processed sugar", "Stay hydrated"],
+        exercise: ["30 min walk daily", "Yoga/Stretching 3× week", "Light cardio activities"]
+      },
+      2: {
+        title: "🟢 Low Risk (21–40%)",
+        desc: "Good health with room for improvement. Small lifestyle changes recommended.",
+        factors: [3, 3, 2, 3, 3],
+        diet: ["Reduce salt intake", "Increase fiber", "Include omega-3 foods", "Limit saturated fats"],
+        exercise: ["Brisk walk 30–40 mins daily", "Light resistance training 2× week", "Swimming or cycling"]
+      },
+      3: {
+        title: "🟡 Moderate Risk (41–60%)",
+        desc: "Preventive action advised. Please consult your doctor for personalized guidance.",
+        factors: [5, 6, 5, 5, 4],
+        diet: ["Mediterranean diet", "Avoid fried foods", "Limit red meat", "Increase vegetables"],
+        exercise: ["Brisk walking 30–45 mins", "Swimming or cycling", "Yoga for stress management"]
+      },
+      4: {
+        title: "🟠 High Risk (61–80%)",
+        desc: "Cardiologist consultation strongly recommended. Take immediate preventive measures.",
+        factors: [7, 8, 7, 6, 5],
+        diet: ["Low sodium & low saturated fat", "Small frequent meals", "Consult dietician", "Avoid processed foods"],
+        exercise: ["Doctor-approved light exercise only", "Avoid heavy exertion", "Gentle walking"]
+      },
+      5: {
+        title: "🔴 Very High Risk (81–100%)",
+        desc: "URGENT: Immediate medical attention required. Please visit ER or cardiology specialist now.",
+        factors: [9, 10, 9, 8, 7],
+        diet: ["Strict medical diet", "Monitor blood sugar", "Avoid processed foods", "Follow doctor's plan"],
+        exercise: ["Only doctor-approved minimal activity", "Complete rest if advised"]
+      }
+    };
+
+    /* Read URL parameters */
+    const params = new URLSearchParams(location.search);
+    const pathParts = window.location.pathname.split('/');
+    const valFromPath = parseInt(pathParts[pathParts.length - 1]);
+    const levelParam = valFromPath || parseInt(params.get("level")) || 1;
+    const riskPercentParam = parseFloat(params.get("risk")) || (levelParam * 20 - 10);
+
+    let currentRiskLevel = levelParam;
+    let factorChartInstance = null;
+
+    /* Initialize map */
+    let map = L.map('map', { scrollWheelZoom: false }).setView([NANDED_LAT, NANDED_LON], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+
+    doctors.forEach((d) => {
+      const marker = L.marker([d.lat, d.lon]).addTo(map);
+      marker.bindPopup(`<strong>${d.name}</strong><br>${d.address}<br>Phone: ${d.phone}`);
+    });
+
+    /* Populate doctor list */
+    function refreshDoctorList() {
+      const div = document.getElementById('doctorList');
+      div.innerHTML = '';
+      doctors.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'doctor-card';
+        el.innerHTML = `
+                    <div class="doctor-name">${d.name}</div>
+                    <div class="doctor-info">${d.address}</div>
+                    <div class="doctor-info">📞 ${d.phone}</div>
+                    <div class="doctor-actions">
+                        <button class="btn-small btn-outline" onclick="emailDoctor('${d.email}','${d.name}')">
+                            <i class="fa-solid fa-envelope"></i> Email
+                        </button>
+                        <button class="btn-small btn-primary-small" onclick="alertDoctor('${d.email}','${d.name}')">
+                            <i class="fa-solid fa-bell"></i> Send Alert
+                        </button>
+                    </div>
+                `;
+        div.appendChild(el);
+      });
+    }
+    refreshDoctorList();
+
+    /* Show risk details */
+    function show(level) {
+      currentRiskLevel = level;
+      const data = PLANS[level];
+      const details = document.getElementById('detailsArea');
+
+      // Update active pill
+      document.querySelectorAll('.risk-pill').forEach(pill => pill.classList.remove('active'));
+      document.querySelectorAll('.risk-pill')[level - 1].classList.add('active');
+
+      details.innerHTML = `
+                <div class="report-card highlight" id="detailSection">
+                    <div class="report-title">${data.title}</div>
+                    <div class="report-subtitle">${data.desc}</div>
+                    <div style="background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 2rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--primary-color);"><i class="fa-solid fa-chart-line"></i> Your Risk Score</h4>
+                        <p style="margin: 0; font-size: 2rem; font-weight: 800; color: var(--text-main);" id="predRiskText">--</p>
+                    </div>
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem;"><i class="fa-solid fa-clipboard-list"></i> Personalized Recommendations</h3>
+                    <div class="recommendations-grid">
+                        <div class="recommendation-card">
+                            <h4><i class="fa-solid fa-utensils"></i> Diet Plan</h4>
+                            <ul>${data.diet.map(i => `<li>${i}</li>`).join('')}</ul>
+                        </div>
+                        <div class="recommendation-card">
+                            <h4><i class="fa-solid fa-dumbbell"></i> Exercise</h4>
+                            <ul>${data.exercise.map(i => `<li>${i}</li>`).join('')}</ul>
+                        </div>
+                        <div class="recommendation-card">
+                            <h4><i class="fa-solid fa-stethoscope"></i> Medical Care</h4>
+                            <ul>
+                                <li>${data.desc}</li>
+                                <li>Recommended tests: BP, Lipid profile, ECG</li>
+                                ${level >= 4 ? '<li style="color: #EF4444; font-weight: 600;">Consult cardiologist immediately</li>' : ''}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+      const risk = (typeof riskPercentParam === 'number' && !Number.isNaN(riskPercentParam)) ? riskPercentParam : Math.min(100, Math.max(5, level * 20 - 5));
+      animateMeter(risk);
+      document.getElementById('predRiskText').innerText = risk + '%';
+      renderChart(data.factors);
+
+      setTimeout(() => document.getElementById('detailSection').scrollIntoView({ behavior: 'smooth' }), 150);
+    }
+
+    /* Animate meter */
+    function animateMeter(percent) {
+      const arc = document.getElementById('meterArc');
+      const meterPercent = document.getElementById('meterPercent');
+      const circumference = 2 * Math.PI * 40;
+      const target = Math.max(0, Math.min(100, percent));
+      const length = (target / 100) * circumference;
+
+      let current = 0;
+      const steps = 50;
+      const stepVal = length / steps;
+
+      if (window.meterAnim) clearInterval(window.meterAnim);
+      arc.style.strokeDasharray = `0 ${circumference}`;
+
+      window.meterAnim = setInterval(() => {
+        current += stepVal;
+        const filled = current;
+        const remain = Math.max(0, circumference - filled);
+        arc.style.strokeDasharray = `${filled} ${remain}`;
+        meterPercent.innerText = Math.round((filled / circumference) * 100) + '%';
+        if (filled >= length - 0.1) {
+          clearInterval(window.meterAnim);
+          meterPercent.innerText = Math.round(target) + '%';
+        }
+      }, 10);
+    }
+
+    /* Chart.js for factors */
+    function renderChart(values) {
+      const ctx = document.getElementById('factorChart').getContext('2d');
+      if (factorChartInstance) factorChartInstance.destroy();
+      factorChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['BMI', 'BP', 'Cholesterol', 'Lifestyle', 'Diet'],
+          datasets: [{
+            label: 'Factor Level',
+            data: values,
+            backgroundColor: ['#10B981', '#34D399', '#FBBF24', '#FB923C', '#EF4444']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, max: 10 } }
+        }
+      });
+    }
+
+    /* Download functions */
+    function downloadDietCSV() {
+      const lev = currentRiskLevel;
+      const plan = PLANS[lev];
+      const rows = [['Type', 'Item'], ...plan.diet.map(i => ['Diet', i]), ...plan.exercise.map(i => ['Exercise', i])];
+      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `heartcare_diet_plan_level_${lev}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function downloadDietPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const lev = currentRiskLevel;
+      const plan = PLANS[lev];
+      doc.setFontSize(16);
+      doc.text(`HeartCare - Diet & Exercise Plan`, 14, 20);
+      doc.setFontSize(14);
+      doc.text(`${plan.title}`, 14, 30);
+      doc.setFontSize(12);
+      let y = 44;
+      doc.text('Diet Recommendations:', 14, y);
+      y += 6;
+      plan.diet.forEach(i => { doc.text(`• ${i}`, 18, y); y += 6; });
+      y += 4;
+      doc.text('Exercise Recommendations:', 14, y);
+      y += 6;
+      plan.exercise.forEach(i => { doc.text(`• ${i}`, 18, y); y += 6; });
+      doc.save(`heartcare_diet_plan_level_${lev}.pdf`);
+    }
+
+    function printFriendly() {
+      window.print();
+    }
+
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'px', format: 'a4' });
+      const lev = currentRiskLevel;
+      const plan = PLANS[lev];
+      const risk = riskPercentParam || (lev * 20 - 10);
+
+      doc.setFontSize(20);
+      doc.text('HeartCare — Health Report', 20, 30);
+      doc.setFontSize(12);
+      doc.text(`${plan.title} — Risk: ${risk}%`, 20, 52);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 68);
+
+      const chartCanvas = document.getElementById('factorChart');
+      const chartDataUrl = chartCanvas.toDataURL('image/png', 1.0);
+      doc.addImage(chartDataUrl, 'PNG', 20, 90, 320, 160);
+
+      let y = 260;
+      doc.setFontSize(13);
+      doc.text('Diet Recommendations:', 20, y);
+      y += 16;
+      plan.diet.forEach(i => { doc.setFontSize(11); doc.text('• ' + i, 24, y); y += 12; });
+      y += 8;
+      doc.setFontSize(13);
+      doc.text('Exercise Recommendations:', 20, y);
+      y += 16;
+      plan.exercise.forEach(i => { doc.setFontSize(11); doc.text('• ' + i, 24, y); y += 12; });
+      y += 14;
+      doc.setFontSize(13);
+      doc.text('Nearby Doctors:', 20, y);
+      y += 16;
+      doctors.forEach(d => {
+        doc.setFontSize(11);
+        doc.text(`${d.name} — ${d.address} — ${d.phone}`, 24, y);
+        y += 12;
+      });
+      doc.save(`heartcare_report_level_${lev}.pdf`);
+    }
+
+    function emailDoctor(email, name) {
+      const lev = currentRiskLevel;
+      const risk = riskPercentParam || (lev * 20 - 10);
+      const subject = encodeURIComponent(`HeartCare: Consultation Request — Risk ${risk}%`);
+      const body = encodeURIComponent(`Dear ${name},\n\nI am contacting you regarding a cardiovascular risk assessment showing ${risk}% risk. Please let me know your available consultation slots.\n\nRegards,\nHeartCare User`);
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    }
+
+    function alertDoctor(email, name) {
+      emailDoctor(email, name);
+    }
+
+    /* Initialize */
+    window.addEventListener('load', () => {
+      const lvl = levelParam;
+      show(lvl);
+    });
+  </script>
+</body>
+
+</html>

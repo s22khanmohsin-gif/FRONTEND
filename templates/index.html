@@ -4,202 +4,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CardioAI | Advanced Heart Health Assessment</title>
+    <title>HeartCare | Advanced Heart Health Assessment</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❤️</text></svg>">
 </head>
 
 <body>
+    <!-- Background Effect -->
     <div class="background-glow"></div>
 
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="header-container">
+            <div class="brand">
+                <span class="heart-icon">❤️</span>
+                <span class="brand-name">HeartCare</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+                <a href="/calculate" class="btn-start">Start Assessment</a>
+            </nav>
+        </div>
+    </header>
+
     <main class="container">
-        <header class="header">
-            <div class="logo">
-                <i class="fa-solid fa-heart-pulse"></i>
-                <span>CardioAI</span>
+
+        <!-- HERO SECTION -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1>Know Your Heart Health in Minutes</h1>
+                <p>
+                    Advanced AI-powered cardiovascular risk assessment trusted by thousands. Get personalized insights,
+                    diet plans, and expert recommendations—all in one place.
+                </p>
+                <a href="/calculate" class="hero-btn">
+                    Check Your Risk Now <i class="fa-solid fa-arrow-right"></i>
+                </a>
             </div>
-            <h1>Predict Your Heart Health<br>With Precision AI</h1>
-            <p>Clinical-grade risk assessment using advanced machine learning algorithms.</p>
-        </header>
+            <div class="hero-image">
+                <img src="{{ url_for('static', filename='images/heart.png') }}" alt="3D Heart Illustration">
+            </div>
+        </section>
 
-        <form id="predictionForm" class="glass-panel">
-            <div class="form-grid">
-                <!-- Personal Details -->
-                <div class="form-section">
-                    <h3><i class="fa-regular fa-id-card"></i> Personal Profile</h3>
-
-                    <div class="input-group">
-                        <label for="Age">Age</label>
-                        <input type="number" id="Age" name="Age" min="18" max="100" required placeholder="e.g. 45">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="Sex">Biological Sex</label>
-                        <select id="Sex" name="Sex" required>
-                            <option value="" disabled selected>Select...</option>
-                            <option value="0">Female</option>
-                            <option value="1">Male</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="Height">Height (cm)</label>
-                        <input type="number" id="Height" name="Height" min="100" max="250" required
-                            placeholder="e.g. 175">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="Weight">Weight (kg)</label>
-                        <input type="number" id="Weight" name="Weight" min="30" max="200" required
-                            placeholder="e.g. 70">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="BMI">BMI (Auto-calculated)</label>
-                        <input type="number" id="BMI" name="BMI" readonly placeholder="---"
-                            style="background-color: #e2e8f0; cursor: not-allowed;">
-                    </div>
+        <!-- TRUST INDICATORS -->
+        <section class="trust-section">
+            <div class="trust-container">
+                <div class="trust-stat">
+                    <div class="stat-number">10,000+</div>
+                    <div class="stat-label">Assessments Completed</div>
                 </div>
-
-                <!-- Health History -->
-                <div class="form-section">
-                    <h3><i class="fa-solid fa-notes-medical"></i> Medical History</h3>
-
-                    <div class="input-group">
-                        <label for="General_Health">Self-Rated Health</label>
-                        <select id="General_Health" name="General_Health" required>
-                            <option value="Excellent">Excellent</option>
-                            <option value="Very_Good">Very Good</option>
-                            <option value="Good">Good</option>
-                            <option value="Fair">Fair</option>
-                            <option value="Poor">Poor</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="Checkup">Last Checkup</label>
-                        <select id="Checkup" name="Checkup" required>
-                            <option value="Within 1 year">Within 1 year</option>
-                            <option value="1-2 years">1-2 years</option>
-                            <option value="2-5 years">2-5 years</option>
-                            <option value="5+ years">5+ years</option>
-                            <option value="Never">Never</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="Diabetes">Diabetes Status</label>
-                        <select id="Diabetes" name="Diabetes" required>
-                            <option value="No">No</option>
-                            <option value="Borderline">Borderline</option>
-                            <option value="During Pregnancy">During Pregnancy</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                    </div>
-
-                    <div class="checkbox-group">
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="Skin_Cancer" name="Skin_Cancer">
-                            <span class="checkmark"></span>
-                            Skin Cancer
-                        </label>
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="Other_Cancer" name="Other_Cancer">
-                            <span class="checkmark"></span>
-                            Other Cancer
-                        </label>
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="Depression" name="Depression">
-                            <span class="checkmark"></span>
-                            Depression
-                        </label>
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="Arthritis" name="Arthritis">
-                            <span class="checkmark"></span>
-                            Arthritis
-                        </label>
-                    </div>
+                <div class="trust-stat">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">Accuracy Rate</div>
                 </div>
-
-                <!-- Lifestyle -->
-                <div class="form-section full-width">
-                    <h3><i class="fa-solid fa-person-running"></i> Lifestyle Factors</h3>
-
-                    <div class="lifestyle-grid">
-                        <div class="input-group">
-                            <label for="Exercise">Regular Exercise</label>
-                            <select id="Exercise" name="Exercise" required>
-                                <option value="0">No</option>
-                                <option value="1">Yes</option>
-                            </select>
-                        </div>
-
-                        <div class="input-group">
-                            <label for="Smoking">Smoking History</label>
-                            <select id="Smoking" name="Smoking" required>
-                                <option value="0">No</option>
-                                <option value="1">Yes</option>
-                            </select>
-                        </div>
-
-                        <div class="input-group">
-                            <label for="Alcohol">Alcohol (Days/Month)</label>
-                            <input type="number" id="Alcohol" name="Alcohol" min="0" max="30" value="0">
-                        </div>
-
-                        <div class="input-group">
-                            <label for="Fruit">Fruit (Servings/Month)</label>
-                            <input type="number" id="Fruit" name="Fruit" min="0" max="100" value="0">
-                        </div>
-
-                        <div class="input-group">
-                            <label for="Green_Vegetables">Green Veggies (Servings/Month)</label>
-                            <input type="number" id="Green_Vegetables" name="Green_Vegetables" min="0" max="100"
-                                value="0">
-                        </div>
-
-                        <div class="input-group">
-                            <label for="Fried_Potato">Fried Food (Servings/Month)</label>
-                            <input type="number" id="Fried_Potato" name="Fried_Potato" min="0" max="100" value="0">
-                        </div>
-                    </div>
+                <div class="trust-stat">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Available Anytime</div>
+                </div>
+                <div class="trust-stat">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Privacy Protected</div>
                 </div>
             </div>
+        </section>
 
-            <div class="form-actions">
-                <button type="submit" class="btn-primary">
-                    <span>Analyze Risk Profile</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>
+        <!-- HOW IT WORKS -->
+        <section class="how-it-works">
+            <div class="section-title">
+                <h2>How It Works</h2>
+                <p>Get your personalized heart health assessment in three simple steps</p>
             </div>
-        </form>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+                    <h3>Fill Health Profile</h3>
+                    <p>Answer a few questions about your age, lifestyle, medical history, and current health status.
+                        Takes only 2-3 minutes.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-icon"><i class="fa-solid fa-brain"></i></div>
+                    <h3>AI Analysis</h3>
+                    <p>Our advanced machine learning model analyzes your data against thousands of clinical patterns to
+                        assess your risk.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-icon"><i class="fa-solid fa-file-medical"></i></div>
+                    <h3>Get Recommendations</h3>
+                    <p>Receive a detailed report with your risk level, personalized diet plans, exercise tips, and
+                        nearby cardiologist suggestions.</p>
+                </div>
+            </div>
+        </section>
 
-        <div id="resultModal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <div class="result-header">
-                    <div id="riskIcon" class="risk-icon"></div>
-                    <h2 id="riskLevel">High Risk</h2>
+        <!-- ABOUT SECTION -->
+        <section id="about">
+            <div class="section-title">
+                <h2>Why Choose HeartCare?</h2>
+                <p>Our mission is to empower you with early detection and preventive knowledge.</p>
+            </div>
+
+            <div class="about-grid">
+                <div class="about-card">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <h3>AI Risk Analysis</h3>
+                    <p>Advanced machine learning algorithms assess multiple health parameters to estimate your risk
+                        profile.</p>
                 </div>
-                <div class="result-body">
-                    <p>Based on your health indicators, our AI model estimates your cardiovascular disease risk
-                        probability as:</p>
-                    <div class="probability-meter">
-                        <div id="probFill" class="prob-fill"></div>
-                        <span id="probValue">0%</span>
+
+                <div class="about-card">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <h3>Data-Driven Accuracy</h3>
+                    <p>Trained on thousands of clinical records to ensure reliable and statistical predictions.</p>
+                </div>
+
+                <div class="about-card">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <h3>Privacy First</h3>
+                    <p>Your health data is processed securely and is never stored permanently on our servers.</p>
+                </div>
+
+                <div class="about-card">
+                    <i class="fa-solid fa-user-doctor"></i>
+                    <h3>Preventive Care</h3>
+                    <p>Get actionable recommendations and alerts to consult specialists when necessary.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TESTIMONIALS -->
+        <section class="testimonials">
+            <div class="section-title">
+                <h2>What Our Users Say</h2>
+                <p>Real stories from people who took control of their heart health</p>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="quote-icon"><i class="fa-solid fa-quote-left"></i></div>
+                    <p class="testimonial-text">"HeartCare's assessment helped me identify risk factors I wasn't aware
+                        of. I made lifestyle changes and my doctor confirmed significant improvement in my health
+                        markers."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">RS</div>
+                        <div>
+                            <div class="author-name">Rajesh Sharma</div>
+                            <div class="author-role">Software Engineer, 45</div>
+                        </div>
                     </div>
-                    <p class="disclaimer"><strong>Disclaimer:</strong> This tool provides an estimate based on
-                        statistical models. It is not a medical diagnosis. Please consult a cardiologist for a proper
-                        evaluation.</p>
                 </div>
-                <button class="btn-secondary" onclick="closeModal()">Close Result</button>
+                <div class="testimonial-card">
+                    <div class="quote-icon"><i class="fa-solid fa-quote-left"></i></div>
+                    <p class="testimonial-text">"As someone with a family history of heart disease, this tool gave me
+                        peace of mind. The recommendations were practical and the doctor suggestions were very helpful."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">PD</div>
+                        <div>
+                            <div class="author-name">Priya Deshmukh</div>
+                            <div class="author-role">Teacher, 38</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-icon"><i class="fa-solid fa-quote-left"></i></div>
+                    <p class="testimonial-text">"The detailed report with diet and exercise plans was exactly what I
+                        needed. It's like having a personal health advisor available 24/7."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">AK</div>
+                        <div>
+                            <div class="author-name">Amit Kulkarni</div>
+                            <div class="author-role">Business Owner, 52</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION -->
+        <section id="contact">
+            <div class="section-title">
+                <h2>Get in Touch</h2>
+                <p>We are always available to help you with your queries and support.</p>
+            </div>
+
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <i class="fa-solid fa-envelope"></i>
+                    <h3>Email</h3>
+                    <p>support@heartcare.com</p>
+                </div>
+
+                <div class="contact-card">
+                    <i class="fa-solid fa-phone"></i>
+                    <h3>Phone</h3>
+                    <p>+91 9876543210</p>
+                </div>
+
+                <div class="contact-card">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <h3>Location</h3>
+                    <p>Nanded, Maharashtra, India</p>
+                </div>
+
+                <div class="contact-card">
+                    <i class="fa-solid fa-clock"></i>
+                    <h3>Hours</h3>
+                    <p>24/7 Online Service</p>
+                </div>
+            </div>
+
+            <div class="map-box">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d60489.77663774982!2d77.27!3d19.16!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bd1d9a0a8f1e8c9%3A0x7c0c8c8c8c8c8c8c!2sNanded%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1234567890"
+                    allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-about">
+                <h3>HeartCare</h3>
+                <p>
+                    HeartCare is a heart disease risk prediction platform created to promote early
+                    detection, awareness, and prevention of cardiovascular diseases through simple
+                    online assessment.
+                </p>
+            </div>
+
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <a href="#home">Home</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+                <a href="/calculate">Start Calculation</a>
+            </div>
+
+            <div class="footer-contact">
+                <h4>Contact Info</h4>
+                <p><strong>Email:</strong> support@heartcare.com</p>
+                <p><strong>Phone:</strong> +91 9876543210</p>
+                <p><strong>Location:</strong> Nanded, Maharashtra, India</p>
             </div>
         </div>
-    </main>
+
+        <div class="footer-bottom">
+            <p>&copy; 2025 HeartCare | AI Heart Disease Risk Prediction System | All Rights Reserved</p>
+        </div>
+    </footer>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

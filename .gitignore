@@ -1,10 +1,2 @@
-# Python cache
-__pycache__/
-*.pyc
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
+Meta-MLP_Base-GB-AdaB-XGB-RF_full.pkl
+README.md

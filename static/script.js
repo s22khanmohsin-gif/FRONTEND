@@ -1,3 +1,5 @@
+let predictedRiskLevel = 1;
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('predictionForm');
     const heightInput = document.getElementById('Height');
@@ -82,29 +84,54 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function showResult(result) {
-        const riskLevel = document.getElementById('riskLevel');
-        const riskIcon = document.getElementById('riskIcon');
+        const riskLevelEl = document.getElementById('riskLevel');
+        const riskIconEl = document.getElementById('riskIcon');
         const probFill = document.getElementById('probFill');
-        const probValue = document.getElementById('probValue'); // Wait, I didn't add this ID in HTML, let me check.
-        // Ah, I added <span id="probValue">85%</span> in HTML. Good.
+        const probValue = document.getElementById('probValue');
+
+        // Update global variable for recommendation redirection
+        predictedRiskLevel = result.risk_level;
 
         const probability = result.probability;
         const percentage = (probability * 100).toFixed(1) + '%';
+        
+        // Update Modal UI based on Risk Level (1-5)
+        let colorStart, colorEnd, iconClass, text;
 
-        if (probability > 0.5) {
-            riskLevel.textContent = 'High Risk';
-            riskLevel.className = 'risk-high';
-            riskIcon.innerHTML = '<i class="fa-solid fa-heart-crack risk-high"></i>';
-            probFill.style.background = 'linear-gradient(90deg, #F87171, #EF4444)'; // Red 400 -> 500
+        if (predictedRiskLevel <= 2) {
+            // Low Risk (Level 1-2)
+            text = 'Low Risk';
+            iconClass = 'fa-heart-circle-check risk-low';
+            colorStart = '#34D399'; // Emerald 400
+            colorEnd = '#10B981';   // Emerald 500
+            riskLevelEl.style.color = '#10B981';
+        } else if (predictedRiskLevel === 3) {
+            // Moderate Risk
+            text = 'Moderate Risk';
+            iconClass = 'fa-heart-circle-exclamation'; // Orange warning
+            colorStart = '#FBBF24'; // Amber 400
+            colorEnd = '#F59E0B';   // Amber 500
+            riskLevelEl.style.color = '#F59E0B';
+            riskIconEl.innerHTML = `<i class="fa-solid ${iconClass}" style="color: #F59E0B"></i>`;
         } else {
-            riskLevel.textContent = 'Low Risk';
-            riskLevel.className = 'risk-low';
-            riskIcon.innerHTML = '<i class="fa-solid fa-heart-circle-check risk-low"></i>';
-            probFill.style.background = 'linear-gradient(90deg, #34D399, #10B981)'; // Emerald 400 -> 500
+            // High Risk (Level 4-5)
+            text = 'High Risk';
+            iconClass = 'fa-heart-crack risk-high';
+            colorStart = '#F87171'; // Red 400
+            colorEnd = '#EF4444';   // Red 500
+            riskLevelEl.style.color = '#EF4444';
         }
 
+        riskLevelEl.textContent = text;
+        if(predictedRiskLevel !== 3) {
+            // Re-apply classes for non-custom styled icons
+             riskLevelEl.className = predictedRiskLevel <= 2 ? 'risk-low' : 'risk-high';
+             riskIconEl.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+        }
+        
+        probFill.style.background = `linear-gradient(90deg, ${colorStart}, ${colorEnd})`;
         probFill.style.width = percentage;
-        document.querySelector('.probability-meter span').textContent = percentage; // Use selector if ID fails
+        probValue.textContent = percentage;
 
         modal.classList.add('visible');
     }
@@ -120,6 +147,27 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal();
         }
     }
+    
+    // smooth scroll to sections
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            const targetElement = document.querySelector(targetId);
+            if(targetElement){
+                targetElement.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
     // Expose to window for button onclick
     window.closeModal = closeModal;
 });
+
+// Outside of DOMContentLoaded to be accessible by inline onclick
+function goToRecommendations() {
+    window.location.href = "/recommendation/" + predictedRiskLevel;
+}
